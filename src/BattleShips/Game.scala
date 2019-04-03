@@ -1,0 +1,5 @@
+package BattleShips
+
+class Game {
+
+}

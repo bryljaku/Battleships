@@ -6,8 +6,7 @@ case class Ship(positions: Set[Cell]) {
 
   def hit(cell: Cell): Ship = {
     val newPositions = positions.map(cellShip =>
-      if (cellShip.x == cell.x && cellShip.y == cell.y)
-        cellShip.copy(state = State.Hit)
+      if (cellShip.x == cell.x && cellShip.y == cell.y) cellShip.copy(state = State.Hit)
       else cellShip)
 
     if (newPositions.dropWhile(x => x.state == State.Hit).isEmpty)
@@ -17,7 +16,7 @@ case class Ship(positions: Set[Cell]) {
   }
   def isSunk: Boolean = {
     positions.foreach(x => if (x.state == State.Miss) return false)
-    return true
+    true
   }
 
   def isOverlapping(ship: Ship): Boolean = {
@@ -37,13 +36,13 @@ case class Ship(positions: Set[Cell]) {
 object Ship {
   def apply(positions: Set[Cell]) = new Ship(positions)
 
-  def apply(x: Int, y: Int, direction: String, length: Int):Ship = {
-    def createPositions(x: Int, y: Int, direction: String, len: Int): Set[Cell] = {
+  def apply(x: Int, y: Int, direction: Char, length: Int):Ship = {
+    def createPositions(x: Int, y: Int, direction: Char, len: Int): Set[Cell] = {
       @tailrec
-      def helper(x: Int, y: Int, dir: String, l: Int, pos: Set[Cell]): Set[Cell] = {
+      def helper(x: Int, y: Int, dir: Char, l: Int, pos: Set[Cell]): Set[Cell] = {
         if (l == 0) pos
         else {
-          if (direction == "Horizontal")
+          if (direction == 'H')
             helper(x + 1, y, dir, l - 1, pos + Cell(x, y, State.Occupied))
           else
             helper(x, y + 1, dir, l - 1, pos + Cell(x, y, State.Occupied))

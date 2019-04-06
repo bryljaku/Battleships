@@ -1,0 +1,4 @@
+package BattleShips
+
+class AI {
+}

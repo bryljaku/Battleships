@@ -23,4 +23,7 @@ case class Fleet(ships: Set[Ship]) {
   def getShipsCoordinates: Set[(Int, Int)] = {
     ships.flatMap(ship => ship.getCoordinates)
   }
+  def getShipsCells: Set[Cell] = {
+    ships.flatMap(ship => ship.positions)
+  }
 }

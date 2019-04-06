@@ -7,9 +7,9 @@ trait Player {
   val shotsReceived: Set[Cell]
   val sinkShips: Set[Ship]
 
-  def placeShip(ship: Ship): Player
+  def placeShips(lengths: List[Int]): Player
   def guess(cell: Cell): Cell
-  def receive(cell: Cell)
-  def didLose(): Boolean = fleet.ships.size == sinkShips.size
+  def receiveShot(cell: Cell)
+  def checkLose(): Boolean = fleet.ships.size == sinkShips.size
 
 }

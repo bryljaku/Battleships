@@ -3,6 +3,12 @@ package BattleShips
 case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGiven: Set[Cell] = Set(),
             shotsReceived: Set[Cell] = Set(), sinkShips: Set[Ship] = Set()) extends Player {
 
+  //  this.shoot -> Board -> otherPlayer.receiveShot -> Board -> this.afterShooting
+  override def shoot(): Cell = {
+    println("Your turn to shoot!")
+    val (x, y) = Board.getCoordinates
+    Cell(x, y)
+  }
   override def placeShips(shipsList: List[Int]): Player = {
     def placeShipsHelper(shipsList: List[Int], fleet: Fleet): Fleet = {
       if (shipsList.isEmpty) fleet
@@ -17,17 +23,10 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
         }
       }
     }
-
     println("Placement of ships!")
     this.copy(fleet = placeShipsHelper(shipsList, fleet))
   }
 
-  //  this.shoot -> Board -> otherPlayer.receiveShot -> Board -> this.afterShooting
-  override def shoot(): Cell = {
-    println("Your turn to shoot!")
-    val (x, y) = Board.getCoordinates
-    Cell(x, y)
-  }
 
   override def afterShooting(cell: Cell, hit: Boolean, sunkShip: Option[Ship]): Player = {
     if (shotsGiven.exists(s => s.x == cell.x && s.y == cell.y)) this

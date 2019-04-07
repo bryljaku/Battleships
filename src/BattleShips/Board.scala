@@ -20,9 +20,7 @@ object Board {
         println("wrong coordinate! Try again")
         getCoordinates
       } else (x, y)
-
     }
-
   }
 
   @tailrec
@@ -66,7 +64,7 @@ object Board {
   }
 
   def printLegend: Unit = {
-    print("")
+    print("X - Destroyed, + - Hit, O - Miss, $ - Ship")
   }
 
   def showMyBoard(player: Player): Unit = {
@@ -121,7 +119,4 @@ object Board {
     printTopRow
     printer(0, 0)
   }
-//  val gracz = Human()
-//  showEnemyBoard(gracz.afterShooting(Cell(1, 1, State.Sink), true, None))
-
 }

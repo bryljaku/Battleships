@@ -1,20 +1,24 @@
 package BattleShips
 
-case class Fleet(ships: Set[Ship]) {
-  def addShip(s: Ship): Fleet = {
-    if (!isOverlapping(s))
-      this
-    else
-      this.copy(ships = ships + s)
+case class Fleet(ships: Set[Ship] = Set()) {
+
+  def addShip(ship: Ship): Option[Fleet] = {
+    if(!isOverlapping(ship)) {
+      Some(this.copy(ships = this.ships + ship))
+    } else None
+
   }
-  def hit(cell: Cell): Fleet = {
-    if (!isTouched(cell))
-      return this
-    this.copy(ships = ships.map(x =>
-      if (x.isTouched(cell)) x.hit(cell)
-      else x))
+  def hit(cell: Cell): (Fleet, Boolean, Option[Ship]) = {
+       val newShips = ships.map(ship => if (ship.isTouched(cell)) ship.hit(cell) else ship)
+       val touched = newShips.dropWhile(ship => !ship.isTouched(cell))
+       val ship: Option[Ship] = if (touched.nonEmpty) {
+         if (touched.head.isSunk) Some(touched.head)
+         else None
+       } else None
+
+    (this.copy(ships = newShips), touched.nonEmpty, ship)
   }
-  def isTouched(cell: Cell): Boolean = {
+  def isHit(cell: Cell): Boolean = {
     ships.dropWhile(x => x.isTouched(cell)).nonEmpty
   }
   def isOverlapping(s: Ship): Boolean = {

@@ -11,31 +11,31 @@ case class Ship(positions: Set[Cell]) {
 
     if (newPositions.dropWhile(x => x.state == State.Hit).isEmpty)
       this.copy(positions = newPositions.map(x => x.copy(state = State.Sink)))
-    else
-      this.copy(positions = newPositions)
+    else this.copy(positions = newPositions)
   }
   def isSunk: Boolean = {
-    positions.foreach(x => if (x.state == State.Miss) return false)
+    positions.foreach(x => if (x.state == State.Occupied) return false)
     true
   }
 
   def isOverlapping(ship: Ship): Boolean = {
-    ship.positions.dropWhile(cell =>
-      this.positions.dropWhile(tCell =>
-      (tCell.x != cell.x) || (tCell.y != cell.y)).isEmpty).nonEmpty
+    positions.dropWhile(cell =>
+      !ship.isTouched(cell)).nonEmpty
   }
 
   def isTouched(cell: Cell): Boolean =
-    positions.dropWhile(pos => pos.x != cell.x && pos.y != cell.y).nonEmpty
+    positions.dropWhile(pos => pos.x != cell.x || pos.y != cell.y).nonEmpty
 
   def getCoordinates: Set[(Int, Int)] = {
     positions.map(x => (x.x, x.y))
   }
 }
 
-object Ship {
+object Ship extends App {
   def apply(positions: Set[Cell]) = new Ship(positions)
 
+  def apply(tuple: Tuple4[Int, Int, Char, Int]): Ship =
+    Ship(tuple._1, tuple._2, tuple._3, tuple._4)
   def apply(x: Int, y: Int, direction: Char, length: Int):Ship = {
     def createPositions(x: Int, y: Int, direction: Char, len: Int): Set[Cell] = {
       @tailrec
@@ -52,4 +52,6 @@ object Ship {
     }
     new Ship(createPositions(x, y, direction, length))
   }
+
+
 }

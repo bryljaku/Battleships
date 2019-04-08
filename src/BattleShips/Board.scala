@@ -2,24 +2,27 @@ package BattleShips
 
 import scala.annotation.tailrec
 object Board {
-  final val SIZE = 5
-  val shipsToPlace = List(1, 2)
+  final val SIZE = 6
+  val shipsToPlace = List(1, 2, 3, 4)
 
   //  input
   def getCoordinates: (Int, Int) = {
     print("Enter x coordinate: ")
-    val x = scala.io.StdIn.readInt()
+    val x = scala.io.StdIn.readLine()(0).asDigit
     if (x < 0 || x >= this.SIZE) {
       println("wrong coordinate! Try again")
       getCoordinates
     }
     else {
       print("Enter y coordinate ")
-      val y = scala.io.StdIn.readInt()
+      val y = scala.io.StdIn.readLine()(0).asDigit
       if (y < 0 || y >= this.SIZE) {
         println("wrong coordinate! Try again")
         getCoordinates
-      } else (x, y)
+      } else {
+        println(s"($x, $y)")
+        (x, y)
+      }
     }
   }
 
@@ -29,14 +32,13 @@ object Board {
     def getShipOrientation: Char = {
       println("Choose orientation of your ship: H - Horizontal, V - Vertical")
       val direction = scala.io.StdIn.readChar()
-      if ("HV".contains(direction))
+      if ("HV".contains(direction.toUpper))
         direction
       else {
         println("Wrong direction. Try again!")
         getShipOrientation
       }
     }
-
     def checkShipInBoard(x: Int, y: Int, dir: Char): Boolean = {
       def h(maxX: Int, maxY: Int): Boolean = maxX - x >= 0 && maxY - y >= 0
       if (dir == 'H')
@@ -44,7 +46,6 @@ object Board {
       else
         h(this.SIZE, this.SIZE - len)
     }
-
     println(s"Choose starting point for your ship(length: $len)");
     val coordinates = getCoordinates
     val direction = getShipOrientation
@@ -55,6 +56,7 @@ object Board {
       getShipCoordinates(len)
     }
   }
+
 
   //  output
   def printTopRow: Unit = {
@@ -115,7 +117,10 @@ object Board {
         printer(x + 1, y)
       }
     }
-    println("Enemy's board")
+    if (player.isInstanceOf[Human])
+      println("Guesses")
+    else if (player.isInstanceOf[AI])
+      println("AI guesses")
     printTopRow
     printer(0, 0)
   }

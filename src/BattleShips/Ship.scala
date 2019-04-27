@@ -36,6 +36,7 @@ object Ship extends App {
 
   def apply(tuple: Tuple4[Int, Int, Char, Int]): Ship =
     Ship(tuple._1, tuple._2, tuple._3, tuple._4)
+
   def apply(x: Int, y: Int, direction: Char, length: Int):Ship = {
     def createPositions(x: Int, y: Int, direction: Char, len: Int): Set[Cell] = {
       @tailrec

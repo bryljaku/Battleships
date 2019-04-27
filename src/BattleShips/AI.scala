@@ -21,9 +21,9 @@ case class AI(name: String = "Scalony Pirat", fleet: Fleet = Fleet(), shotsGiven
       if (neighbours.isEmpty) randomShoot()
       else neighbours.head
     }
-    def shootInRow(cells: Set[Cell]): Cell = {
+    def shootInRow(lastCorrectGuesses: Set[Cell]): Cell = {
       def getPossibleCells: Set[Cell] = {
-        val sortedCells = cells.toList.sortBy(_.x).sortBy(_.y)
+        val sortedCells = lastCorrectGuesses.toList.sortBy(_.x).sortBy(_.y)
         val t = sortedCells.last
         val h = sortedCells.head
         if (h.x != t.x)
@@ -52,12 +52,12 @@ case class AI(name: String = "Scalony Pirat", fleet: Fleet = Fleet(), shotsGiven
       !guessed  && inBorder
       }
 
-
     val lastAccurateGuesses = shotsGiven.filter(_.state == State.Hit)
-    if (lastAccurateGuesses.isEmpty) randomShoot()
-    else if (lastAccurateGuesses.size == 1)
-      shootAroundIsolatedCell(lastAccurateGuesses.head)
-    else shootInRow(lastAccurateGuesses)
+    lastAccurateGuesses.size match {
+      case 0 => randomShoot()
+      case 1 => shootAroundIsolatedCell(lastAccurateGuesses.head)
+      case _ => shootInRow(lastAccurateGuesses)
+    }
   }
 
   override def placeShips(shipsList: List[Int]): Player = {
@@ -69,6 +69,7 @@ case class AI(name: String = "Scalony Pirat", fleet: Fleet = Fleet(), shotsGiven
         else placeShipsHelper(shipsList, fleet)
       }
     }
+
     this.copy(fleet = placeShipsHelper(shipsList, fleet))
   }
   def createShip(len: Int): Ship = {
@@ -80,9 +81,6 @@ case class AI(name: String = "Scalony Pirat", fleet: Fleet = Fleet(), shotsGiven
       case 1 => Ship(x, y, 'V', len)
     }
   }
-
-
-
 
   override def receiveShot(cell: Cell): (Player, Boolean, Option[Ship]) = {
     val (newFleet: Fleet, touched: Boolean, ship: Option[Ship]) = fleet.hit(cell)

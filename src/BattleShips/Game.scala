@@ -28,10 +28,10 @@ object Game extends App {
   def startGame(): Unit= {
     val ScalonyWojownik = AI()
     val Gracz = Human("Kapitan Pazur")
-    val finalState: gState = game(initBoard(gState(Gracz, ScalonyWojownik, None)))
+    val finalState: gState = game(initBoard(gSta0te(Gracz, ScalonyWojownik, None)))
     val winner = finalState.win.get
-    Board.showEnemyBoard(ScalonyWojownik)
-    Board.showEnemyBoard(Gracz)
+    Board.showEnemyBoard(finalState.p2)
+    Board.showEnemyBoard(finalState.p1)
     println(s"${winner.name} won the game!")
   }
   startGame()

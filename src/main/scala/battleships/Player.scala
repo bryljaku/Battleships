@@ -1,4 +1,4 @@
-package BattleShips
+package main.scala.battleships
 
 trait Player {
   val name: String

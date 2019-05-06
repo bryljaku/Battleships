@@ -1,4 +1,4 @@
-package BattleShips
+package main.scala.battleships
 
 case class Cell(x: Int, y: Int, state: State.Value = State.Water){
 }

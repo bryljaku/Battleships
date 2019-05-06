@@ -1,6 +1,7 @@
-package BattleShips
+package main.scala.battleships
 
 import scala.annotation.tailrec
+import Direction._
 
 case class Ship(positions: Set[Cell]) {
 
@@ -31,28 +32,24 @@ case class Ship(positions: Set[Cell]) {
   }
 }
 
-object Ship extends App {
+object Ship {
   def apply(positions: Set[Cell]) = new Ship(positions)
 
-  def apply(tuple: Tuple4[Int, Int, Char, Int]): Ship =
+  def apply(tuple: Tuple4[Int, Int, Any, Int]): Ship =
     Ship(tuple._1, tuple._2, tuple._3, tuple._4)
 
-  def apply(x: Int, y: Int, direction: Char, length: Int):Ship = {
-    def createPositions(x: Int, y: Int, direction: Char, len: Int): Set[Cell] = {
+  def apply(x: Int, y: Int, direction: Any, length: Int):Ship = {
       @tailrec
-      def helper(x: Int, y: Int, dir: Char, l: Int, pos: Set[Cell]): Set[Cell] = {
-        if (l == 0) pos
-        else {
-          if (direction == 'H')
-            helper(x + 1, y, dir, l - 1, pos + Cell(x, y, State.Occupied))
-          else
-            helper(x, y + 1, dir, l - 1, pos + Cell(x, y, State.Occupied))
+      def createPositions(x: Int, y: Int, len: Int, pos: Set[Cell]): Set[Cell] = {
+        len match {
+          case 0 => pos
+          case _ =>
+            direction match {
+              case Horizontal => createPositions(x + 1, y, len - 1, pos + Cell(x, y, State.Occupied))
+              case _ => createPositions(x, y + 1, len - 1, pos + Cell(x, y, State.Occupied))
+            }
         }
-      }
-      helper(x, y, direction, len, Set())
     }
-    new Ship(createPositions(x, y, direction, length))
+    new Ship(createPositions(x, y, length, Set()))
   }
-
-
 }

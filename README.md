@@ -1,2 +1,2 @@
-# BattleShips
+# main
 Game with simple AI

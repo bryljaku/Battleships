@@ -2,6 +2,7 @@ package main.scala.battleships
 
 import main.scala.battleships.Board.{SIZE}
 import Direction._
+import State._
 import scala.annotation.tailrec
 import scala.io.StdIn.{readChar, readLine}
 
@@ -21,10 +22,12 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
         Board.showMyBoard(copy(fleet = fleet))
         val shipCoordinates = getShipCoordinates(shipsList.head)
         val newFleet = fleet.addShip(Ship(shipCoordinates))
-        if (newFleet.isDefined) placeShipsHelper(shipsList.tail, newFleet.get)
-        else {
+        newFleet match {
+          case Some(newF) => placeShipsHelper(shipsList.tail, newF)
+          case _ =>
           println("Ship is overlapping another ship from your fleet! Try again")
           placeShipsHelper(shipsList, fleet)
+            
         }
       }
     }
@@ -37,19 +40,20 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
     if (shotsGiven.exists(s => s.x == cell.x && s.y == cell.y)) this
     else {
       if (hit) {
-        if (sunkShip.isDefined) {
-          println(s"Ship with a size of ${sunkShip.get.positions.size} destroyed!")
-          val newSinkShips: Set[Ship] = sinkShips + sunkShip.get
-          val newShotsGiven: Set[Cell] = shotsGiven + cell
-          copy(shotsGiven = newShotsGiven.map(cell => if (sunkShip.get.isTouched(cell)) cell.copy(state = State.Sink) else cell), sinkShips = newSinkShips)
-        } else {
-          println("Hit!")
-          copy(shotsGiven = shotsGiven + cell.copy(state = State.Hit))
+        sunkShip match {
+          case Some(s) => 
+            println(s"Ship with a size of ${s.positions.size} destroyed!")
+            val newSinkShips: Set[Ship] = sinkShips + s
+            val newShotsGiven: Set[Cell] = shotsGiven + cell
+            copy(shotsGiven = newShotsGiven.map(cell => if (s.isTouched(cell)) cell.copy(state = Sink) else cell), sinkShips = newSinkShips)
+          case _ => 
+            println("Hit!")
+            copy(shotsGiven = shotsGiven + cell.copy(state = Hit)) 
         }
       }
       else {
         println("Miss")
-        copy(shotsGiven = shotsGiven + cell.copy(state = State.Miss))
+        copy(shotsGiven = shotsGiven + cell.copy(state = Miss))
       }
     }
   }
@@ -60,15 +64,15 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
       (this, touched, ship)
     } else { touched match {
       case true => ship match {
-        case None => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = State.Hit)), touched, ship)
+        case None => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
         case _ =>
-          val newShotsReceived: Set[Cell] = (shotsReceived + cell.copy(state = State.Sink)).map(square => {
+          val newShotsReceived: Set[Cell] = (shotsReceived + cell.copy(state = Sink)).map(square => {
           val squareShip: Option[Cell] = ship.get.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
           squareShip.getOrElse(square)
         })
           (copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
       }
-      case false => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = State.Miss)), touched, ship)
+      case false => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
     }
     }
   }

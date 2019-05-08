@@ -2,6 +2,8 @@ package main.scala.battleships
 
 import scala.annotation.tailrec
 import scala.util.Random
+import Board._
+import State._
 
 case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: Set[Cell] = Set(),
          shotsReceived: Set[Cell] = Set(), sinkShips: Set[Ship] = Set()) extends Player {
@@ -10,8 +12,8 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
   override def shoot(): Cell = {
     @tailrec
     def randomShoot(): Cell = {
-      val x = rand1.nextInt(Board.SIZE - 1)
-      val y = rand1.nextInt(Board.SIZE - 1)
+      val x = rand1.nextInt(SIZE - 1)
+      val y = rand1.nextInt(SIZE - 1)
       shotsGiven.find(cell => cell.x == x && cell.y == y) match {
         case None => Cell(x, y)
         case _ => randomShoot()
@@ -39,6 +41,12 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
         }
       }
       def getOneCellFromPossibleCells(cells: Set[Cell]): Cell = {
+        // cells match {
+        //   case Nil => randomShoot
+        //   case _ if checkGuessedAndInBorder(cells.head) =>
+        //   getOneCellFromPossibleCells(cells.tail)
+        //   case _ => 
+        // }
         if (cells.isEmpty) randomShoot()
         else if (!checkGuessedAndInBorder(cells.head))
           getOneCellFromPossibleCells(cells.tail)
@@ -50,15 +58,15 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
     def getNeighbours(cell: Cell): Set[Cell] = {
       val x = cell.x
       val y = cell.y
-      Set(Cell(x,y + 1, State.Miss), Cell(x, y - 1, State.Miss), Cell(x + 1, y, State.Miss), Cell(x - 1, y, State.Miss))
+      Set(Cell(x,y + 1, Miss), Cell(x, y - 1, Miss), Cell(x + 1, y, Miss), Cell(x - 1, y, Miss))
       }
     def checkGuessedAndInBorder(cell: Cell): Boolean = {
       def guessed: Boolean = shotsGiven.exists(c => c.x == cell.x && c.y == cell.y)
-      def inBorder: Boolean = cell.x >= 0 && cell.y >= 0 && cell.x < Board.SIZE && cell.y < Board.SIZE
+      def inBorder: Boolean = cell.x >= 0 && cell.y >= 0 && cell.x < SIZE && cell.y < SIZE
       !guessed  && inBorder
       }
 
-    val lastAccurateGuesses = shotsGiven.filter(_.state == State.Hit)
+    val lastAccurateGuesses = shotsGiven.filter(_.state == Hit)
     lastAccurateGuesses.size match {
       case 0 => randomShoot()
       case 1 => shootAroundIsolatedCell(lastAccurateGuesses.head)
@@ -89,40 +97,33 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
     if (this.shotsReceived.exists(c => c.x == cell.x && c.y == cell.y)) {
       (this, touched, ship)
     } else {
-      if (touched && ship.isDefined) {
-        val newShotsReceived: Set[Cell] =
-          (shotsReceived + cell.copy(state = State.Sink)).map(square => {
-          val squareShip: Option[Cell] = ship.get.positions.find(squareShip =>
-            squareShip.x == square.x && squareShip.y == square.y)
+      ship match {
+        case Some(s) if touched => 
+          val newShotsReceived: Set[Cell] =
+          (shotsReceived + cell.copy(state = Sink)).map(square => {
+          val squareShip: Option[Cell] = ship.get.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
           squareShip.getOrElse(square)
         })
-        (this.copy(fleet = newFleet, shotsReceived =
-          newShotsReceived), touched, ship)
-      } else if (touched && ship.isEmpty) {
-        (this.copy(fleet = newFleet, shotsReceived =
-          shotsReceived + cell.copy(state = State.Hit)), touched, ship)
-      } else {
-        (this.copy(fleet = newFleet, shotsReceived =
-          shotsReceived + cell.copy(state = State.Miss)), touched, ship)
+          (this.copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
+        case _ if touched => 
+          (this.copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
+        case _ =>
+          (this.copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
       }
     }
   }
   override def afterShooting(cell: Cell, hit: Boolean, sunkShip: Option[Ship]): Player = {
     if (shotsGiven.exists(s => s.x == cell.x && s.y == cell.y)) this
     else {
-      if (hit) {
-        if (sunkShip.isDefined) {
-          val newSinkShips: Set[Ship] = sinkShips + sunkShip.get
+      sunkShip match {
+        case Some(s) => 
+          val newSinkShips: Set[Ship] = sinkShips + s
           val newShotsGiven: Set[Cell] = shotsGiven + cell
           this.copy(shotsGiven = newShotsGiven.map(cell =>
-            if (sunkShip.get.isTouched(cell)) cell.copy(state = State.Sink)
+            if (s.isTouched(cell)) cell.copy(state = Sink)
             else cell), sinkShips = newSinkShips)
-        } else {
-          this.copy(shotsGiven = shotsGiven + cell.copy(state = State.Hit))
-        }
-      }
-      else {
-        this.copy(shotsGiven = shotsGiven + cell.copy(state = State.Miss))
+        case _ if hit => this.copy(shotsGiven = shotsGiven + cell.copy(state = Hit))
+        case _ => this.copy(shotsGiven = shotsGiven + cell.copy(state = Miss))
       }
     }
   }

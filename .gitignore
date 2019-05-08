@@ -2,8 +2,8 @@
 
 *.log
 
-*.gitattributes
-.idea
+.gitattributes
+.idea/
 target/
 project/
 out/

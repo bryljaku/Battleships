@@ -23,11 +23,10 @@ case class Fleet(ships: Set[Ship] = Set()) {
   def hit(cell: Cell): (Fleet, Boolean, Option[Ship]) = {
        val newShips = ships.map(ship => if (ship.isTouched(cell)) ship.hit(cell) else ship)
        val touched = newShips.find(ship => ship.isTouched(cell))
-       val ship: Option[Ship] = if (touched.nonEmpty) {
-         if (touched.get.isSunk) Some(touched.head)
-         else None
-       } else None
-
+       val ship: Option[Ship] = touched match {
+         case Some(s) if s.isSunk => Some(s)
+         case _ => None
+       }
     (this.copy(ships = newShips), touched.nonEmpty, ship)
   }
   def isHit(cell: Cell): Boolean = {

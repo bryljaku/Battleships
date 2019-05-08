@@ -5,10 +5,9 @@ import scala.annotation.tailrec
 object Game extends App {
   @tailrec
   def game(state: GameState): GameState ={
-    if (state.player1.isInstanceOf[Human]){
+    
       Board.printLegend
       Board.showMyBoard(state.player1)
-    }
       Board.showEnemyBoard(state.player1)
 
     val guessedCell = state.player1.shoot()

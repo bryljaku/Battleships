@@ -3,8 +3,10 @@
 *.log
 
 .gitattributes
-.idea/
 target/
 project/
 out/
 *.iml
+.gitattributes
+BattleShips.iml
+.idea/

@@ -14,10 +14,8 @@ object Game extends App {
     val (newPlayer2, didHit, ship) = state.player2.receiveShot(guessedCell)
     val newPlayer1 = state.player1.afterShooting(guessedCell, didHit, ship)
 
-    if (newPlayer1.checkLose())
+    if (newPlayer2.checkLose())
       state.copy(player1 = newPlayer2, player2 = newPlayer1, win = Some(newPlayer2))
-    else if (newPlayer2.checkLose())
-      state.copy(player1 = newPlayer2, player2 = newPlayer1, win = Some(newPlayer1))
     else {
       game(state.copy(player1 = newPlayer2, player2 = newPlayer1))
     }

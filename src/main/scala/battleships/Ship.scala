@@ -2,30 +2,30 @@ package main.scala.battleships
 
 import scala.annotation.tailrec
 import Direction._
+import State._
 
 case class Ship(positions: Set[Cell]) {
 
   def hit(cell: Cell): Ship = {
-    val newPositions = positions.map(cellShip =>
-      if (cellShip.x == cell.x && cellShip.y == cell.y) cellShip.copy(state = State.Hit)
-      else cellShip)
-
-    if (newPositions.dropWhile(x => x.state == State.Hit).isEmpty)
-      this.copy(positions = newPositions.map(x => x.copy(state = State.Sink)))
-    else this.copy(positions = newPositions)
+    val newPositions = positions.map(cellShip => cellShip match {
+      case Cell(cell.x, cell.y, _) => cellShip.copy(state = Hit)
+      case _ => cellShip
+    })
+    newPositions.find(x => x.state != Hit) match {
+      case None => this.copy(positions = newPositions.map(x => x.copy(state = Sink)))
+      case _ => this.copy(positions = newPositions)
+    }
   }
   def isSunk: Boolean = {
-    positions.foreach(x => if (x.state == State.Occupied) return false)
-    true
+    !positions.exists(x => x.state == Occupied)
   }
 
   def isOverlapping(ship: Ship): Boolean = {
-    positions.dropWhile(cell =>
-      !ship.isTouched(cell)).nonEmpty
+    positions.exists(cell => ship.isTouched(cell))
   }
 
   def isTouched(cell: Cell): Boolean =
-    positions.dropWhile(pos => pos.x != cell.x || pos.y != cell.y).nonEmpty
+    positions.exists(pos => pos.x == cell.x && pos.y == cell.y)
 
   def getCoordinates: Set[(Int, Int)] = {
     positions.map(x => (x.x, x.y))
@@ -45,8 +45,8 @@ object Ship {
           case 0 => pos
           case _ =>
             direction match {
-              case Horizontal => createPositions(x + 1, y, len - 1, pos + Cell(x, y, State.Occupied))
-              case _ => createPositions(x, y + 1, len - 1, pos + Cell(x, y, State.Occupied))
+              case Horizontal => createPositions(x + 1, y, len - 1, pos + Cell(x, y, Occupied))
+              case _ => createPositions(x, y + 1, len - 1, pos + Cell(x, y, Occupied))
             }
         }
     }

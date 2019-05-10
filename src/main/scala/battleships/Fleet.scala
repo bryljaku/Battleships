@@ -12,8 +12,8 @@ case class Fleet(ships: Set[Ship] = Set()) {
   }
 
   def addRandomShip(len: Int): Option[Fleet] = {
-    val x = Random.nextInt(Board.SIZE - 1)
-    val y = Random.nextInt(Board.SIZE - 1)
+    val x = Random.nextInt(Board.SIZE - len)
+    val y = Random.nextInt(Board.SIZE - len)
     val orientation = Random.nextInt(2)
     orientation match {
       case 0 => addShip(Ship(x, y, Horizontal, len))
@@ -27,6 +27,7 @@ case class Fleet(ships: Set[Ship] = Set()) {
          case Some(s) if s.isSunk => Some(s)
          case _ => None
        }
+       
     (this.copy(ships = newShips), touched.nonEmpty, ship)
   }
   def isHit(cell: Cell): Boolean = {

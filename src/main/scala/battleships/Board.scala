@@ -6,7 +6,7 @@ import State._
 object Board {
 //  val conf = ConfigFactory.load
   val SIZE = 6
-  val shipsToPlace = List(1, 3, 4)//conf.getString("battleships.size")
+  val shipsToPlace = List(4, 1)//conf.getString("battleships.size")
   def printTopRow: Unit = {
     print("|_ _|")
     for (x <- 0 to SIZE - 2) print(s"|_${x}_|")

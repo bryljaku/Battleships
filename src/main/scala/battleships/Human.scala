@@ -62,15 +62,16 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
     val (newFleet: Fleet, touched: Boolean, ship: Option[Ship]) = fleet.hit(cell)
     if (shotsReceived.exists(s => s.x == cell.x && s.y == cell.y)) {
       (this, touched, ship)
-    } else { touched match {
+    } else { 
+      touched match {
       case true => ship match {
-        case None => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
-        case _ =>
+        case Some(s) =>
           val newShotsReceived: Set[Cell] = (shotsReceived + cell.copy(state = Sink)).map(square => {
           val squareShip: Option[Cell] = ship.get.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
           squareShip.getOrElse(square)
-        })
+          })
           (copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
+        case None => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
       }
       case false => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
     }

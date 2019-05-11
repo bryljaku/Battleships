@@ -6,7 +6,7 @@ import State._
 import scala.annotation.tailrec
 import scala.io.StdIn.{readChar, readLine}
 
-case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGiven: Set[Cell] = Set(),
+case class Human(name: String = "Sparrow", fleet: Fleet = Fleet(), shotsGiven: Set[Cell] = Set(),
             shotsReceived: Set[Cell] = Set(), sinkShips: Set[Ship] = Set()) extends Player {
 
   //  shoot -> Board -> otherPlayer.receiveShot -> Board -> afterShooting
@@ -27,7 +27,6 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
           case _ =>
           println("Ship is overlapping another ship from your fleet! Try again")
           placeShipsHelper(shipsList, fleet)
-            
         }
       }
     }
@@ -39,23 +38,19 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
   override def afterShooting(cell: Cell, hit: Boolean, sunkShip: Option[Ship]): Player = {
     if (shotsGiven.exists(s => s.x == cell.x && s.y == cell.y)) this
     else {
-      if (hit) {
         sunkShip match {
           case Some(s) => 
             println(s"Ship with a size of ${s.positions.size} destroyed!")
             val newSinkShips: Set[Ship] = sinkShips + s
             val newShotsGiven: Set[Cell] = shotsGiven + cell
             copy(shotsGiven = newShotsGiven.map(cell => if (s.isTouched(cell)) cell.copy(state = Sink) else cell), sinkShips = newSinkShips)
-          case _ => 
+          case _ if hit => 
             println("Hit!")
             copy(shotsGiven = shotsGiven + cell.copy(state = Hit)) 
+          case _ => println("Miss")
+            copy(shotsGiven = shotsGiven + cell.copy(state = Miss))
         }
       }
-      else {
-        println("Miss")
-        copy(shotsGiven = shotsGiven + cell.copy(state = Miss))
-      }
-    }
   }
 
   override def receiveShot(cell: Cell): (Player, Boolean, Option[Ship]) = {
@@ -63,43 +58,46 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
     if (shotsReceived.exists(s => s.x == cell.x && s.y == cell.y)) {
       (this, touched, ship)
     } else { 
-      touched match {
-      case true => ship match {
+      ship match {
         case Some(s) =>
           val newShotsReceived: Set[Cell] = (shotsReceived + cell.copy(state = Sink)).map(square => {
-          val squareShip: Option[Cell] = ship.get.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
+          val squareShip: Option[Cell] = s.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
           squareShip.getOrElse(square)
           })
           (copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
-        case None => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
+        case _ if touched => 
+          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
+        case _  => 
+          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
+        
       }
-      case false => (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
-    }
     }
   }
-  @tailrec
-  final def getCoordinates: (Int, Int) = {
-    print("Enter x coordinate: ")
-    val x = readLine()(0).asDigit //io.StdIn.readLine()(0).asDigit
-    if (x < 0 || x >= SIZE) {
-      println("wrong coordinate! Try again")
-      getCoordinates
-    }
-    else {
-      print("Enter y coordinate ")
-      val y = readLine()(0).asDigit
-      if (y < 0 || y >= SIZE) {
-        println("wrong coordinate! Try again")
-        getCoordinates
-      } else {
-        println(s"($x, $y)")
-        (x, y)
+  
+  def getCoordinates: (Int, Int) = {
+    def helper: Int = {
+      try {
+      val x = readLine().toInt
+      if (x < 0 || x >= SIZE){
+        println("wrong coordinate, try again")
+        helper
+      } else x
+      }
+      catch {
+        case _: Throwable => println("wrong input, try again") 
+        helper
       }
     }
+    println("Enter x: ")
+    val x = helper
+    println("Enter y: ")
+    val y = helper
+    println(s"($x,$y)")
+    (x,y)
   }
 
-  @tailrec
-  final def getShipCoordinates(len: Int): (Int, Int, Any, Int) = {
+   def getShipCoordinates(len: Int): (Int, Int, Any, Int) = {
+    @tailrec
     def getShipDirection: Any = {
       println("Choose orientation of your ship: H - Horizontal, V - Vertical")
       readChar.toUpper match {
@@ -117,6 +115,8 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
         case _ => helper(SIZE, SIZE - len)
       }
     }
+    @tailrec
+    def getShipCoordinatesHelper: (Int, Int, Any, Int) = { 
     println(s"Choose starting point for your ship(length: $len)");
     val coordinates = getCoordinates
     val direction = len match {
@@ -127,8 +127,11 @@ case class Human(name: String = "Kapitan Pazur", fleet: Fleet = Fleet(), shotsGi
       (coordinates._1, coordinates._2, direction, len)
     else {
       println("Your ship is out of boundaries, try again")
-      getShipCoordinates(len)
+      getShipCoordinatesHelper
+      }
     }
+
+    getShipCoordinatesHelper
   }
 
 }

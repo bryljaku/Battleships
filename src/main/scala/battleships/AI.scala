@@ -29,9 +29,7 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
     def shootInRow(lastCorrectGuesses: Set[Cell]): Cell = {
       def getPossibleCells: Set[Cell] = {
         val sortedCells = lastCorrectGuesses.toList.sortBy(_.x).sortBy(_.y)
-//       ((1,2), (1,1), (1,3))  -> ((1,2), (1,1), (1,3)) ->  ((1,1), (1,2), (1,3))
-//       ((1,1), (0,1), (2,1))  -> ((0,1), (1,1), (2,1)) ->  ((0,1), (1,1), (2,1))
-
+        println(sortedCells)
         val t = sortedCells.last
         val h = sortedCells.head
         (h.x, h.y) match {
@@ -41,12 +39,6 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
         }
       }
       def getOneCellFromPossibleCells(cells: Set[Cell]): Cell = {
-        // cells match {
-        //   case Nil => randomShoot
-        //   case _ if checkGuessedAndInBorder(cells.head) =>
-        //   getOneCellFromPossibleCells(cells.tail)
-        //   case _ => 
-        // }
         if (cells.isEmpty) randomShoot()
         else if (!checkGuessedAndInBorder(cells.head))
           getOneCellFromPossibleCells(cells.tail)
@@ -58,7 +50,7 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
     def getNeighbours(cell: Cell): Set[Cell] = {
       val x = cell.x
       val y = cell.y
-      Set(Cell(x,y + 1, Miss), Cell(x, y - 1, Miss), Cell(x + 1, y, Miss), Cell(x - 1, y, Miss))
+      Set(Cell(x,y + 1), Cell(x, y - 1), Cell(x + 1, y), Cell(x - 1, y))
       }
     def checkGuessedAndInBorder(cell: Cell): Boolean = {
       def guessed: Boolean = shotsGiven.exists(c => c.x == cell.x && c.y == cell.y)
@@ -88,27 +80,26 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
       }
     }
 
-    this.copy(fleet = placeShipsHelper(shipsList, fleet))
+    copy(fleet = placeShipsHelper(shipsList, fleet))
   }
 
 
   override def receiveShot(cell: Cell): (Player, Boolean, Option[Ship]) = {
     val (newFleet: Fleet, touched: Boolean, ship: Option[Ship]) = fleet.hit(cell)
-    if (this.shotsReceived.exists(c => c.x == cell.x && c.y == cell.y)) {
+    if (shotsReceived.exists(s => s.x == cell.x && s.y == cell.y)) {
       (this, touched, ship)
-    } else {
+    } else { 
       ship match {
-        case Some(s) if touched => 
-          val newShotsReceived: Set[Cell] =
-          (shotsReceived + cell.copy(state = Sink)).map(square => {
-          val squareShip: Option[Cell] = ship.get.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
+        case Some(s) =>
+          val newShotsReceived: Set[Cell] = (shotsReceived + cell.copy(state = Sink)).map(square => {
+          val squareShip: Option[Cell] = s.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
           squareShip.getOrElse(square)
-        })
-          (this.copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
+          })
+          (copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
         case _ if touched => 
-          (this.copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
-        case _ =>
-          (this.copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
+          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
+        case _  => 
+          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
       }
     }
   }
@@ -119,11 +110,11 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
         case Some(s) => 
           val newSinkShips: Set[Ship] = sinkShips + s
           val newShotsGiven: Set[Cell] = shotsGiven + cell
-          this.copy(shotsGiven = newShotsGiven.map(cell =>
+          copy(shotsGiven = newShotsGiven.map(cell =>
             if (s.isTouched(cell)) cell.copy(state = Sink)
             else cell), sinkShips = newSinkShips)
-        case _ if hit => this.copy(shotsGiven = shotsGiven + cell.copy(state = Hit))
-        case _ => this.copy(shotsGiven = shotsGiven + cell.copy(state = Miss))
+        case _ if hit => copy(shotsGiven = shotsGiven + cell.copy(state = Hit))
+        case _ => copy(shotsGiven = shotsGiven + cell.copy(state = Miss))
       }
     }
   }

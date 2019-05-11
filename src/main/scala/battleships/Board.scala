@@ -14,81 +14,49 @@ object Board {
   }
 
   def printLegend: Unit = {
-    print("X - Destroyed, + - Hit, O - Miss, $ - Ship")
+    println("X - Destroyed, + - Hit, O - Miss, $ - Ship")
   }
 
   def showMyBoard(player: Player): Unit = {
-    val shipsCells = player.fleet.getShipsCells
-    def printer = {
-      @tailrec
-      def printerHelper(x: Int, y: Int, remainedShipsCells: Set[Cell]): Unit = {
-       if (x == 0 && y < SIZE) print(s"|_${y}_|")
-
-       (x, y) match {
-         case (SIZE, _) =>
-          println
-          printerHelper(0, y + 1, remainedShipsCells)
-         case (_, SIZE) =>
-          println
-        case _ => 
-          val cell = remainedShipsCells.find(c => c.x == x && c.y == y)
-          cell match {
-            case Some(c) => c.state match {
-              case Miss => print("|_O_|")
-              case Sink => print("|_X_|")
-              case Hit => print("|_+_|")
-              case Occupied => print("|_$_|")
-              case _ => print("|_ _|")
-            }
-            case _ => print("|_ _|")
-          }
-         printerHelper(x + 1, y, shipsCells.filter(c => c.x != x || c.y != y))
-       }
-      }
-      printerHelper(0, 0, shipsCells)
-    }
     println("My board")
     printTopRow
-    printer
+    printer(player.fleet.getShipsCells)
   }
 
   def showEnemyBoard(player: Player): Unit = {
-
-    val shotsGivenRemained = player.shotsGiven
-      
-       def printer = {
-      @tailrec
-      def printerHelper(x: Int, y: Int, remainedShipsCells: Set[Cell]): Unit = {
-       if (x == 0 && y < SIZE) print(s"|_${y}_|")
-
-       (x, y) match {
-         case (SIZE, _) =>
-          println
-          printerHelper(0, y + 1, shotsGivenRemained)
-         case (_, SIZE) =>
-          println
-        case _ => 
-          val cell = shotsGivenRemained.find(c => c.x == x && c.y == y)
-          cell match {
-            case Some(c) => c.state match {
-              case Miss => print("|_O_|")
-              case Sink => print("|_X_|")
-              case Hit => print("|_+_|")
-              case _ => print("|_ _|")
-            }
-            case _ => print("|_ _|")
-          }
-         printerHelper(x + 1, y, shotsGivenRemained.filter(c => c.x != x || c.y != y))
-       }
-      }
-      printerHelper(0, 0, shotsGivenRemained)
-    }
-
     player match {
       case _: Human => println(s"${player.name} Guesses")
       case _: AI => println(s"${player.name}(AI) guesses")
     }
     printTopRow
-    printer
+    printer(player.shotsGiven)
+  }
+
+  def printer(shipsCells:Set[Cell]) = {
+    @tailrec
+    def printerHelper(x: Int, y: Int, cellsRemained: Set[Cell]): Unit = {
+     if (x == 0 && y < SIZE) print(s"|_${y}_|")
+      (x, y) match {
+        case (SIZE, _) =>
+        println
+         printerHelper(0, y + 1, cellsRemained)
+       case (_, SIZE) =>
+        println
+       case _ => 
+         val cell = cellsRemained.find(c => c.x == x && c.y == y)
+         cell match {
+           case Some(c) => c.state match {
+             case Miss => print("|_O_|")
+            case Sink => print("|_X_|")
+            case Hit => print("|_+_|")
+            case Occupied => print("|_$_|")
+             case _ => print("|_ _|")
+           }
+          case _ => print("|_ _|")
+         }
+        printerHelper(x + 1, y, cellsRemained.filter(c => c.x != x || c.y != y))
+     }
+    }
+    printerHelper(0, 0, shipsCells)
   }
 }

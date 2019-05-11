@@ -27,10 +27,13 @@ object Game extends App {
     val computer = AI()
     val human = Human()
     val finalState: GameState = game(initBoard(GameState(human, computer, None)))
-    val winner = finalState.win.get
     Board.showEnemyBoard(finalState.player2)
     Board.showEnemyBoard(finalState.player1)
-    println(s"${winner.name} won the game!")
+    val winner = finalState.win match {
+      case Some(player) => player.name
+      case _ => "Something went wrong."
+    }
+    println(s"${winner} won the game!")
   }
   startGame()
 }

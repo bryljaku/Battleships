@@ -34,9 +34,9 @@ case class Ship(positions: Set[Cell]) {
 object Ship {
   def apply(positions: Set[Cell]) = new Ship(positions)
 
-  def apply(tuple: Tuple4[Int, Int, Any, Int]): Ship =
-    Ship(tuple._1, tuple._2, tuple._3, tuple._4)
-
+  def apply(ShipCoordinates: ShipCoordinates): Ship = {
+    Ship(ShipCoordinates.x, ShipCoordinates.y, ShipCoordinates.direction, ShipCoordinates.length)
+  }
   def apply(x: Int, y: Int, direction: Any, length: Int):Ship = {
       @tailrec
       def createPositions(x: Int, y: Int, len: Int, pos: Set[Cell]): Set[Cell] = {
@@ -52,3 +52,5 @@ object Ship {
     new Ship(createPositions(x, y, length, Set()))
   }
 }
+
+case class ShipCoordinates(x: Int, y: Int, direction: Any, length: Int)

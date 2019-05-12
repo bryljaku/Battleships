@@ -34,7 +34,6 @@ case class Human(name: String = "Sparrow", fleet: Fleet = Fleet(), shotsGiven: S
     copy(fleet = placeShipsHelper(shipsList, fleet))
   }
 
-
   override def afterShooting(cell: Cell, hit: Boolean, sunkShip: Option[Ship]): Player = {
     if (shotsGiven.exists(s => s.x == cell.x && s.y == cell.y)) this
     else {
@@ -96,7 +95,7 @@ case class Human(name: String = "Sparrow", fleet: Fleet = Fleet(), shotsGiven: S
     (x,y)
   }
 
-   def getShipCoordinates(len: Int): (Int, Int, Any, Int) = {
+   def getShipCoordinates(len: Int): ShipCoordinates = {
     @tailrec
     def getShipDirection: Any = {
       println("Choose orientation of your ship: H - Horizontal, V - Vertical")
@@ -116,7 +115,7 @@ case class Human(name: String = "Sparrow", fleet: Fleet = Fleet(), shotsGiven: S
       }
     }
     @tailrec
-    def getShipCoordinatesHelper: (Int, Int, Any, Int) = { 
+    def getShipCoordinatesHelper: ShipCoordinates = { 
     println(s"Choose starting point for your ship(length: $len)");
     val coordinates = getCoordinates
     val direction = len match {
@@ -124,7 +123,7 @@ case class Human(name: String = "Sparrow", fleet: Fleet = Fleet(), shotsGiven: S
       case _ => getShipDirection
     }
     if (checkShipInBoard(coordinates._1, coordinates._2, direction))
-      (coordinates._1, coordinates._2, direction, len)
+      ShipCoordinates(coordinates._1, coordinates._2, direction, len)
     else {
       println("Your ship is out of boundaries, try again")
       getShipCoordinatesHelper
@@ -133,5 +132,4 @@ case class Human(name: String = "Sparrow", fleet: Fleet = Fleet(), shotsGiven: S
 
     getShipCoordinatesHelper
   }
-
 }

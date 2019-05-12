@@ -11,9 +11,11 @@ object Game extends App {
       Board.showEnemyBoard(state.player1)
 
     val guessedCell = state.player1.shoot()
-    val (newPlayer2, didHit, ship) = state.player2.receiveShot(guessedCell)
-    val newPlayer1 = state.player1.afterShooting(guessedCell, didHit, ship)
+    val receiveShotValue = state.player2.receiveShot(guessedCell)
+    val newPlayer2 = receiveShotValue.player
 
+    val newPlayer1 = state.player1.afterShooting(guessedCell, receiveShotValue.isHit, receiveShotValue.sunkShip)
+    
     if (newPlayer2.checkLose())
       state.copy(player1 = newPlayer2, player2 = newPlayer1, win = Some(newPlayer2))
     else {

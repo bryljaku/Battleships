@@ -53,22 +53,22 @@ case class Human(name: String = "Sparrow", fleet: Fleet = Fleet(), shotsGiven: S
       }
   }
 
-  override def receiveShot(cell: Cell): (Player, Boolean, Option[Ship]) = {
-    val (newFleet: Fleet, touched: Boolean, ship: Option[Ship]) = fleet.hit(cell)
+  override def receiveShot(cell: Cell): ReceiveShotValue = {
+    val hitValue = fleet.hit(cell)
     if (shotsReceived.exists(s => s.x == cell.x && s.y == cell.y)) {
-      (this, touched, ship)
+      ReceiveShotValue(this, hitValue.isHit, hitValue.sunkShip)
     } else { 
-      ship match {
+      hitValue.sunkShip match {
         case Some(s) =>
           val newShotsReceived: Set[Cell] = (shotsReceived + cell.copy(state = Sink)).map(square => {
           val squareShip: Option[Cell] = s.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
           squareShip.getOrElse(square)
           })
-          (copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
-        case _ if touched => 
-          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
+          ReceiveShotValue(copy(fleet = hitValue.fleet, shotsReceived = newShotsReceived), hitValue.isHit, hitValue.sunkShip)
+        case _ if hitValue.isHit => 
+          ReceiveShotValue(copy(fleet = hitValue.fleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), hitValue.isHit, hitValue.sunkShip)
         case _  => 
-          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
+          ReceiveShotValue(copy(fleet = hitValue.fleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), hitValue.isHit, hitValue.sunkShip)
         
       }
     }

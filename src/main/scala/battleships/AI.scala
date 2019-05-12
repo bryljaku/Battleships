@@ -15,9 +15,9 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
       val x = rand1.nextInt(SIZE - 1)
       val y = rand1.nextInt(SIZE - 1)
       shotsGiven.find(cell => cell.x == x && cell.y == y) match {
-        case None => Cell(x, y)
-        case _ => randomShoot()
-      }
+        case Some(_) => randomShoot()
+        case _ => Cell(x, y)
+      } 
     }
     def shootAroundIsolatedCell(cell: Cell): Cell = {
       val neighbours = getNeighbours(cell).filter(checkGuessedAndInBorder).toList
@@ -28,13 +28,12 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
     }
     def shootInRow(lastCorrectGuesses: Set[Cell]): Cell = {
       def getPossibleCells: Set[Cell] = {
-        val sortedCells = lastCorrectGuesses.toList.sortBy(_.x).sortBy(_.y)
-        println(sortedCells)
+        val sortedCells = lastCorrectGuesses.toList.sortBy(g => (g.x, g.y))
         val t = sortedCells.last
         val h = sortedCells.head
         (h.x, h.y) match {
-          case (t.x, _) => Set(Cell(h.x - 1, h.y), Cell(t.x + 1, t.y))
-          case (_, t.y) => Set(Cell(h.x, h.y - 1), Cell(t.x, t.y + 1))
+          case (t.x, _) => Set(Cell(h.x , h.y - 1), Cell(t.x, t.y + 1))
+          case (_, t.y) => Set(Cell(h.x - 1, h.y), Cell(t.x + 1, t.y))
           case _ => Set()
         }
       }
@@ -79,30 +78,29 @@ case class AI(name: String = "Blackbeard", fleet: Fleet = Fleet(), shotsGiven: S
         }
       }
     }
-
     copy(fleet = placeShipsHelper(shipsList, fleet))
   }
 
-
-  override def receiveShot(cell: Cell): (Player, Boolean, Option[Ship]) = {
-    val (newFleet: Fleet, touched: Boolean, ship: Option[Ship]) = fleet.hit(cell)
+  override def receiveShot(cell: Cell): ReceiveShotValue = {
+    val hitValue = fleet.hit(cell)
     if (shotsReceived.exists(s => s.x == cell.x && s.y == cell.y)) {
-      (this, touched, ship)
+      ReceiveShotValue(this, hitValue.isHit, hitValue.sunkShip)
     } else { 
-      ship match {
+      hitValue.sunkShip match {
         case Some(s) =>
           val newShotsReceived: Set[Cell] = (shotsReceived + cell.copy(state = Sink)).map(square => {
           val squareShip: Option[Cell] = s.positions.find(squareShip => squareShip.x == square.x && squareShip.y == square.y)
           squareShip.getOrElse(square)
           })
-          (copy(fleet = newFleet, shotsReceived = newShotsReceived), touched, ship)
-        case _ if touched => 
-          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), touched, ship)
+          ReceiveShotValue(copy(fleet = hitValue.fleet, shotsReceived = newShotsReceived), hitValue.isHit, hitValue.sunkShip)
+        case _ if hitValue.isHit => 
+          ReceiveShotValue(copy(fleet = hitValue.fleet, shotsReceived = shotsReceived + cell.copy(state = Hit)), hitValue.isHit, hitValue.sunkShip)
         case _  => 
-          (copy(fleet = newFleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), touched, ship)
+          ReceiveShotValue(copy(fleet = hitValue.fleet, shotsReceived = shotsReceived + cell.copy(state = Miss)), hitValue.isHit, hitValue.sunkShip)
+        
       }
     }
-  }
+    }
   override def afterShooting(cell: Cell, hit: Boolean, sunkShip: Option[Ship]): Player = {
     if (shotsGiven.exists(s => s.x == cell.x && s.y == cell.y)) this
     else {

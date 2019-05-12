@@ -5,15 +5,14 @@ import Direction._
 import State._
 
 case class Ship(positions: Set[Cell]) {
-
   def hit(cell: Cell): Ship = {
     val newPositions = positions.map(cellShip => cellShip match {
       case Cell(cell.x, cell.y, _) => cellShip.copy(state = Hit)
       case _ => cellShip
     })
     newPositions.find(x => x.state != Hit) match {
-      case None => this.copy(positions = newPositions.map(x => x.copy(state = Sink)))
-      case _ => this.copy(positions = newPositions)
+      case None => copy(positions = newPositions.map(x => x.copy(state = Sink)))
+      case _ => copy(positions = newPositions)
     }
   }
   def isSunk: Boolean = {

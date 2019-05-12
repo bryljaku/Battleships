@@ -4,7 +4,6 @@ import scala.util.Random
 import Direction._
 
 case class Fleet(ships: Set[Ship] = Set()) {
-
   def addShip(ship: Ship): Option[Fleet] = {
     if(!isOverlapping(ship)) {
       Some(copy(ships = ships + ship))
@@ -20,7 +19,7 @@ case class Fleet(ships: Set[Ship] = Set()) {
       case 1 => addShip(Ship(x, y, Vertical, len))
     }
   }
-  def hit(cell: Cell): (Fleet, Boolean, Option[Ship]) = {
+  def hit(cell: Cell): HitValue = {
        val newShips = ships.map(ship => if (ship.isTouched(cell)) ship.hit(cell) else ship)
        val touched = newShips.find(ship => ship.isTouched(cell))
        val ship: Option[Ship] = touched match {
@@ -28,7 +27,7 @@ case class Fleet(ships: Set[Ship] = Set()) {
          case _ => None
        }
        
-    (this.copy(ships = newShips), touched.nonEmpty, ship)
+    HitValue(copy(ships = newShips), touched.nonEmpty, ship)
   }
   def isHit(cell: Cell): Boolean = {
     ships.exists(_.isTouched(cell))
@@ -42,4 +41,9 @@ case class Fleet(ships: Set[Ship] = Set()) {
   def getShipsCells: Set[Cell] = {
     ships.flatMap(_.positions)
   }
+
 }
+case class HitValue(fleet: Fleet, isHit: Boolean, sunkShip: Option[Ship])
+
+
+

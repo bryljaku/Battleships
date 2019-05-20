@@ -6,7 +6,8 @@ import collection.JavaConversions._
 object Board {
  val conf = ConfigFactory.load
   val SIZE = conf.getInt("battleships.size")
-  val shipsToPlace = List(4, 3, 1)//conf.getIntList("battleships.ships").toList.map(_.toInt)
+  val shipsToPlace = conf.getString("battleships.ships").split(",").toList.map(_.toInt)
+
   def printTopRow: Unit = {
     print("|_ _|")
     for (x <- 0 to SIZE - 2) print(s"|_${x}_|")
